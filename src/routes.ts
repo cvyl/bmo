@@ -3,58 +3,53 @@ import render2 from 'render2';
 
 import { Env } from './types';
 
-
 type CF = [env: Env, ctx: ExecutionContext];
 const router = Router<IRequestStrict, CF>();
 
 // Function to extract file extension from filename
 const getFileExtension = (filename: string) => {
-	const ext = filename.split('.').pop();
-	return ext ? `.${ext}` : '';
+	const parts = filename.split('.');
+	return parts.length > 1 ? `.${parts.pop()}` : '';
 };
-
-
 
 // tiny html page for root
 router.get('/', () => new Response(`
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<link rel="icon" href="https://boymoder.org/1719009115" type="image/x-icon" />
-		<meta property="og:title" content="boymoder.org" />
-		<meta property="og:image" content="https://boymoder.org/1719009115" />
-		<title>boymoder.org</title>
-	</head>
-	<body>
-		<div id="test">
-			<img
-				id="rise"
-				src="https://boymoder.org/1719009163"
-				onclick="playAudio()"
-			/>
-		</div>
-		<audio id="audio" controls hidden>
-			<source src="https://boymoder.org/1719009180" type="audio/mpeg" />
-		</audio>
-	<script>
-		var audio = document.getElementById("audio");
-		audio.volume = 0.5;
-		
-		function playAudio() {
-			if (audio.paused) {
-				audio.play();
-			} else {
-				audio.pause();
-				audio.currentTime = 0;
-			}
-		}
-	</script>
-		
-	</body>
-</html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="https://boymoder.org/1719009115" type="image/x-icon" />
+    <meta property="og:title" content="boymoder.org" />
+    <meta property="og:image" content="https://boymoder.org/1719009115" />
+    <title>boymoder.org</title>
+  </head>
+  <body>
+    <div id="test">
+      <img
+        id="rise"
+        src="https://boymoder.org/1719009163"
+        onclick="playAudio()"
+      />
+    </div>
+    <audio id="audio" controls hidden>
+      <source src="https://boymoder.org/1719009180" type="audio/mpeg" />
+    </audio>
+    <script>
+      var audio = document.getElementById("audio");
+      audio.volume = 0.5;
 
+      function playAudio() {
+        if (audio.paused) {
+          audio.play();
+        } else {
+          audio.pause();
+          audio.currentTime = 0;
+        }
+      }
+    </script>
+  </body>
+</html>
 `, {
 	headers: {
 		'content-type': 'text/html',
@@ -93,12 +88,10 @@ router.post('/upload', authMiddleware, async (request, env) => {
 	let fileslug = url.searchParams.get('filename');
 	let extension = '';
 
-	if (!fileslug) {
-		fileslug = Math.floor(Date.now() / 1000).toString();
-	} else {
+	if (fileslug) {
 		extension = getFileExtension(fileslug);
-		fileslug = `${Math.floor(Date.now() / 1000)}${extension}`;
 	}
+	fileslug = `${Math.floor(Date.now() / 1000)}${extension}`;
 	const filename = `${fileslug}`;
 
 	// ensure content-length and content-type headers are present
@@ -127,7 +120,7 @@ router.post('/upload', authMiddleware, async (request, env) => {
 	} catch (error) {
 		return new Response(JSON.stringify({
 			success: false,
-			message: 'Error occured writing to R2',
+			message: 'Error occurred writing to R2',
 			error: {
 				name: error.name,
 				message: error.message,
