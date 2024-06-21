@@ -156,7 +156,7 @@ const getFile = async (request: IRequestStrict, env: Env, ctx: ExecutionContext)
 		return notFound('Not Found');
 	}
 	const url = new URL(request.url);
-	const id = url.pathname;
+	const id = url.pathname.slice(1);
 	console.log(id);
 
 	if (!id) {
@@ -213,7 +213,7 @@ router.get('/upload/:id', getFile);
 router.get('/*', getFile);
 router.head('/*', getFile);
 
-router.get('/files/list', authMiddleware, async (request, env) => {
+router.get('/list', authMiddleware, async (request, env) => {
 	const items = await env.R2_BUCKET.list({ limit: 1000 });
 	return new Response(JSON.stringify(items, null, 2), {
 		headers: {
