@@ -2,7 +2,7 @@ name = "sharex-r2-cloudflare-workers"
 account_id = "54c7b733aa82d85bcf1e7cf752096f54"
 workers_dev = true
 routes = [
-	{pattern = "boymoder.org/*", zone_name = "boymoder.org"}
+	{pattern = "i.boymoder.org/*", zone_name = "boymoder.org"}
 ]
 
 compatibility_date = "2022-10-31"
