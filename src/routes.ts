@@ -1,5 +1,4 @@
 import { IRequestStrict, Router } from 'itty-router';
-import { nanoid } from 'nanoid';
 import render2 from 'render2';
 
 import { Env } from './types';
@@ -40,7 +39,7 @@ router.post('/upload', authMiddleware, async (request, env) => {
 	let fileslug = url.searchParams.get('filename');
 	if (!fileslug) {
 		// generate random filename UUID if not set
-		fileslug = nanoid(10);
+		fileslug = Math.random().toString(36).slice(-7);
 	}
 	const date = new Date();
 	const month = String(date.getMonth() + 1).padStart(2, '0');
