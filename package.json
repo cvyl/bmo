@@ -3,16 +3,7 @@
 	"version": "1.0.0",
 	"private": true,
 	"description": "Cloudflare Worker to handle uploads from ShareX to R2",
-	"homepage": "https://github.com/Cherry/sharex-r2-cloudflare-workers#readme",
-	"bugs": {
-		"url": "https://github.com/Cherry/sharex-r2-cloudflare-workers/issues"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/Cherry/sharex-r2-cloudflare-workers.git"
-	},
 	"license": "MIT",
-	"author": "James Ross <james@jross.me> (https://jross.me)",
 	"main": "index.js",
 	"scripts": {
 		"build": "esbuild src/index.ts --format=esm --platform=neutral --bundle --minify --sourcemap --main-fields=browser,module,main --outfile=dist/index.mjs",

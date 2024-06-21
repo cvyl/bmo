@@ -21,7 +21,7 @@ router.get('/', () => new Response(`
 		<div id="test">
 			<img
 				id="rise"
-				src="https://i.ibb.co/zhQQTg0/1703030822083604.png"
+				src="https://boymoder.org/2024/06/27zxlro"
 				onclick="playAudio()"
 			/>
 		</div>
@@ -82,13 +82,9 @@ router.post('/upload', authMiddleware, async (request, env) => {
 	const url = new URL(request.url);
 	let fileslug = url.searchParams.get('filename');
 	if (!fileslug) {
-		// generate random filename UUID if not set
-		fileslug = Math.random().toString(36).slice(-7);
+		fileslug = Math.floor(Date.now() / 1000).toString();
 	}
-	const date = new Date();
-	const month = String(date.getMonth() + 1).padStart(2, '0');
-	const folder = `${date.getFullYear()}/${month}`;
-	const filename = `${folder}/${fileslug}`;
+	const filename = `${fileslug}`;
 
 	// ensure content-length and content-type headers are present
 	const contentType = request.headers.get('content-type');
@@ -160,7 +156,8 @@ const getFile = async (request: IRequestStrict, env: Env, ctx: ExecutionContext)
 		return notFound('Not Found');
 	}
 	const url = new URL(request.url);
-	const id = url.pathname.slice(6);
+	const id = url.pathname;
+	console.log(id);
 
 	if (!id) {
 		return notFound('Missing ID');
