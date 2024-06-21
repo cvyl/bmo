@@ -22,3 +22,4 @@ binding = "R2_BUCKET"
 #CUSTOM_PUBLIC_BUCKET_DOMAIN = "custom-bucket.domain.tld"
 # Change to not let the worker serve files, only allowing traffic through the Public Bucket. Do not set if you have old links pointing to the worker.
 #ONLY_ALLOW_ACCESS_TO_PUBLIC_BUCKET = true
+
