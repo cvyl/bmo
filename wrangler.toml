@@ -13,8 +13,8 @@ main = "./dist/index.mjs"
 command = "npm run build"
 
 [[r2_buckets]]
-bucket_name = "sharex-files"
-preview_bucket_name = "sharex-files"
+bucket_name = "sharex-r2-cloudflare-workers"
+preview_bucket_name = "sharex-r2-cloudflare-workers"
 binding = "R2_BUCKET"
 
 [vars]
