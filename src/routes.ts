@@ -1,8 +1,8 @@
 import { IRequestStrict, Router } from 'itty-router';
+import { nanoid } from 'nanoid';
 import render2 from 'render2';
 
 import { Env } from './types';
-import { nanoid } from 'nanoid';
 
 
 type CF = [env: Env, ctx: ExecutionContext];
