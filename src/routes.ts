@@ -8,47 +8,48 @@ const router = Router<IRequestStrict, CF>();
 
 // Function to extract file extension from filename
 const getFileExtension = (filename: string) => {
-	const parts = filename.split('.');
-	return parts.length > 1 ? `.${parts.pop()}` : '';
+	const ext = filename.split('.').pop();
+	return ext ? `.${ext}` : '';
 };
 
 // tiny html page for root
 router.get('/', () => new Response(`
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" href="https://boymoder.org/1719009115" type="image/x-icon" />
-    <meta property="og:title" content="boymoder.org" />
-    <meta property="og:image" content="https://boymoder.org/1719009115" />
-    <title>boymoder.org</title>
-  </head>
-  <body>
-    <div id="test">
-      <img
-        id="rise"
-        src="https://boymoder.org/1719009163"
-        onclick="playAudio()"
-      />
-    </div>
-    <audio id="audio" controls hidden>
-      <source src="https://boymoder.org/1719009180" type="audio/mpeg" />
-    </audio>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="icon" href="https://boymoder.org/1719009115" type="image/x-icon" />
+        <meta property="og:title" content="boymoder.org" />
+        <meta property="og:image" content="https://boymoder.org/1719009115" />
+        <title>boymoder.org</title>
+    </head>
+    <body>
+        <div id="test">
+            <img
+                id="rise"
+                src="https://boymoder.org/1719009163"
+                onclick="playAudio()"
+            />
+        </div>
+        <audio id="audio" controls hidden>
+            <source src="https://boymoder.org/1719009180" type="audio/mpeg" />
+        </audio>
     <script>
-      var audio = document.getElementById("audio");
-      audio.volume = 0.5;
-
-      function playAudio() {
-        if (audio.paused) {
-          audio.play();
-        } else {
-          audio.pause();
-          audio.currentTime = 0;
+        var audio = document.getElementById("audio");
+        audio.volume = 0.5;
+        
+        function playAudio() {
+            if (audio.paused) {
+                audio.play();
+            } else {
+                audio.pause();
+                audio.currentTime = 0;
+            }
         }
-      }
     </script>
-  </body>
+        
+    </body>
 </html>
 `, {
 	headers: {
@@ -88,10 +89,12 @@ router.post('/upload', authMiddleware, async (request, env) => {
 	let fileslug = url.searchParams.get('filename');
 	let extension = '';
 
-	if (fileslug) {
+	if (!fileslug) {
+		fileslug = Math.floor(Date.now() / 1000).toString();
+	} else {
 		extension = getFileExtension(fileslug);
+		fileslug = `${Math.floor(Date.now() / 1000)}${extension}`;
 	}
-	fileslug = `${Math.floor(Date.now() / 1000)}${extension}`;
 	const filename = `${fileslug}`;
 
 	// ensure content-length and content-type headers are present
@@ -139,7 +142,7 @@ router.post('/upload', authMiddleware, async (request, env) => {
 	returnUrl.pathname = `/${filename}`;
 	if (env.CUSTOM_PUBLIC_BUCKET_DOMAIN) {
 		returnUrl.host = env.CUSTOM_PUBLIC_BUCKET_DOMAIN;
-		returnUrl.pathname = filename;
+		returnUrl.pathname = `/${filename}`;
 	}
 
 	const deleteUrl = new URL(request.url);
