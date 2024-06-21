@@ -166,26 +166,10 @@ const getFile = async (request: IRequestStrict, env: Env, ctx: ExecutionContext)
 	}
 
 	const imageReq = new Request(`https://r2host/${id}`, request);
-	const imageRes = await render2.fetch(imageReq, {
+	return render2.fetch(imageReq, {
 		...env,
 		CACHE_CONTROL: 'public, max-age=604800',
 	}, ctx);
-
-	// Add OpenGraph metadata to the image response
-	const metadata = {
-		title: 'My Image',
-		image: `https://example.com/${id}`,
-		description: 'This is an image',
-	};
-	const metadataHeaders = Object.entries(metadata).map(([key, value]) => [`og:${key}`, value]);
-	const headers = new Headers(imageRes.headers);
-	for (const [key, value] of metadataHeaders) { headers.set(key, value); }
-
-	return new Response(imageRes.body, {
-		status: imageRes.status,
-		statusText: imageRes.statusText,
-		headers,
-	});
 };
 
 // handle file deletion
