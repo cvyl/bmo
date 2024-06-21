@@ -7,6 +7,50 @@ import { Env } from './types';
 type CF = [env: Env, ctx: ExecutionContext];
 const router = Router<IRequestStrict, CF>();
 
+// tiny html page for root
+router.get('/', () => new Response(`
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link rel="icon" href="/path/to/favicon.ico" type="image/x-icon" />
+		<title>boymoder.org</title>
+	</head>
+	<body>
+		<div id="test">
+			<img
+				id="rise"
+				src="https://i.ibb.co/zhQQTg0/1703030822083604.png"
+				onclick="playAudio()"
+			/>
+		</div>
+		<audio id="audio" controls hidden>
+			<source src="https://smar-tone.com/data/su592.mp3" type="audio/mpeg" />
+		</audio>
+	<script>
+		var audio = document.getElementById("audio");
+		audio.volume = 0.5;
+		
+		function playAudio() {
+			if (audio.paused) {
+				audio.play();
+			} else {
+				audio.pause();
+				audio.currentTime = 0;
+			}
+		}
+	</script>
+		
+	</body>
+</html>
+
+`, {
+	headers: {
+		'content-type': 'text/html',
+	},
+}));
+
 // handle authentication
 const authMiddleware = (request: IRequestStrict, env: Env) => {
 	const url = new URL(request.url);
@@ -181,15 +225,6 @@ router.get('/files/list', authMiddleware, async (request, env) => {
 	});
 });
 
-// 404 everything else
-router.all('*', (): Response => new Response(JSON.stringify({
-	success: false,
-	error: 'Not Found',
-}), {
-	status: 404,
-	headers: {
-		'content-type': 'application/json',
-	},
-}));
+router.all('*', () => notFound('Not Found'));
 
 export { router };
