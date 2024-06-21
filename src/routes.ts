@@ -14,19 +14,19 @@ router.get('/', () => new Response(`
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<link rel="icon" href="/path/to/favicon.ico" type="image/x-icon" />
+		<link rel="icon" href="https://boymoder.org/1719009115" type="image/x-icon" />
 		<title>boymoder.org</title>
 	</head>
 	<body>
 		<div id="test">
 			<img
 				id="rise"
-				src="https://boymoder.org/2024/06/27zxlro"
+				src="https://boymoder.org/1719009163"
 				onclick="playAudio()"
 			/>
 		</div>
 		<audio id="audio" controls hidden>
-			<source src="https://smar-tone.com/data/su592.mp3" type="audio/mpeg" />
+			<source src="https://boymoder.org/1719009180" type="audio/mpeg" />
 		</audio>
 	<script>
 		var audio = document.getElementById("audio");
