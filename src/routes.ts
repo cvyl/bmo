@@ -15,6 +15,8 @@ router.get('/', () => new Response(`
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<link rel="icon" href="https://boymoder.org/1719009115" type="image/x-icon" />
+		<meta property="og:title" content="boymoder.org" />
+		<meta property="og:image" content="https://boymoder.org/1719009115" />
 		<title>boymoder.org</title>
 	</head>
 	<body>
