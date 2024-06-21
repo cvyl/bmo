@@ -7,6 +7,14 @@ import { Env } from './types';
 type CF = [env: Env, ctx: ExecutionContext];
 const router = Router<IRequestStrict, CF>();
 
+// Function to extract file extension from filename
+const getFileExtension = (filename: string) => {
+	const ext = filename.split('.').pop();
+	return ext ? `.${ext}` : '';
+};
+
+
+
 // tiny html page for root
 router.get('/', () => new Response(`
 <!DOCTYPE html>
@@ -83,8 +91,13 @@ const notFound = error => new Response(JSON.stringify({
 router.post('/upload', authMiddleware, async (request, env) => {
 	const url = new URL(request.url);
 	let fileslug = url.searchParams.get('filename');
+	let extension = '';
+
 	if (!fileslug) {
 		fileslug = Math.floor(Date.now() / 1000).toString();
+	} else {
+		extension = getFileExtension(fileslug);
+		fileslug = `${Math.floor(Date.now() / 1000)}${extension}`;
 	}
 	const filename = `${fileslug}`;
 
