@@ -3,16 +3,7 @@
 	"version": "1.0.0",
 	"private": true,
 	"description": "Cloudflare Worker to handle uploads from ShareX to R2",
-	"homepage": "https://github.com/Cherry/sharex-r2-cloudflare-workers#readme",
-	"bugs": {
-		"url": "https://github.com/Cherry/sharex-r2-cloudflare-workers/issues"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/Cherry/sharex-r2-cloudflare-workers.git"
-	},
 	"license": "MIT",
-	"author": "James Ross <james@jross.me> (https://jross.me)",
 	"main": "index.js",
 	"scripts": {
 		"build": "esbuild src/index.ts --format=esm --platform=neutral --bundle --minify --sourcemap --main-fields=browser,module,main --outfile=dist/index.mjs",
@@ -28,6 +19,7 @@
 		"@cloudflare/vitest-pool-workers": "0.1.9",
 		"@cloudflare/workers-types": "4.20240329.0",
 		"@nodecraft/eslint-config": "34.0.1",
+		"@types/node": "20.14.7",
 		"@typescript-eslint/eslint-plugin": "7.4.0",
 		"@typescript-eslint/parser": "7.4.0",
 		"esbuild": "0.20.2",
@@ -39,7 +31,6 @@
 		"itty-router": "5.0.4",
 		"render2": "1.4.1",
 		"typescript": "5.4.3",
-		"vitest": "1.3.0",
 		"wrangler": "3.41.0"
 	},
 	"engines": {

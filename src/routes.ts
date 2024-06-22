@@ -7,6 +7,52 @@ import { Env } from './types';
 type CF = [env: Env, ctx: ExecutionContext];
 const router = Router<IRequestStrict, CF>();
 
+// tiny html page for root
+router.get('/', () => new Response(`
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link rel="icon" href="https://boymoder.org/1719009115" type="image/x-icon" />
+		<meta property="og:title" content="boymoder.org" />
+		<meta property="og:image" content="https://boymoder.org/1719009115" />
+		<title>boymoder.org</title>
+	</head>
+	<body>
+		<div id="test">
+			<img
+				id="rise"
+				src="https://boymoder.org/1719009163"
+				onclick="playAudio()"
+			/>
+		</div>
+		<audio id="audio" controls hidden>
+			<source src="https://boymoder.org/1719009180" type="audio/mpeg" />
+		</audio>
+	<script>
+		var audio = document.getElementById("audio");
+		audio.volume = 0.5;
+		
+		function playAudio() {
+			if (audio.paused) {
+				audio.play();
+			} else {
+				audio.pause();
+				audio.currentTime = 0;
+			}
+		}
+	</script>
+		
+	</body>
+</html>
+
+`, {
+	headers: {
+		'content-type': 'text/html',
+	},
+}));
+
 // handle authentication
 const authMiddleware = (request: IRequestStrict, env: Env) => {
 	const url = new URL(request.url);
@@ -38,13 +84,9 @@ router.post('/upload', authMiddleware, async (request, env) => {
 	const url = new URL(request.url);
 	let fileslug = url.searchParams.get('filename');
 	if (!fileslug) {
-		// generate random filename UUID if not set
-		fileslug = crypto.randomUUID();
+		fileslug = Math.floor(Date.now() / 1000).toString();
 	}
-	const date = new Date();
-	const month = String(date.getMonth() + 1).padStart(2, '0');
-	const folder = `${date.getFullYear()}/${month}`;
-	const filename = `${folder}/${fileslug}`;
+	const filename = `${fileslug}`;
 
 	// ensure content-length and content-type headers are present
 	const contentType = request.headers.get('content-type');
@@ -88,7 +130,7 @@ router.post('/upload', authMiddleware, async (request, env) => {
 	// return the image url to ShareX
 	const returnUrl = new URL(request.url);
 	returnUrl.searchParams.delete('filename');
-	returnUrl.pathname = `/file/${filename}`;
+	returnUrl.pathname = `/${filename}`;
 	if (env.CUSTOM_PUBLIC_BUCKET_DOMAIN) {
 		returnUrl.host = env.CUSTOM_PUBLIC_BUCKET_DOMAIN;
 		returnUrl.pathname = filename;
@@ -116,7 +158,8 @@ const getFile = async (request: IRequestStrict, env: Env, ctx: ExecutionContext)
 		return notFound('Not Found');
 	}
 	const url = new URL(request.url);
-	const id = url.pathname.slice(6);
+	const id = url.pathname.slice(1);
+	console.log(id);
 
 	if (!id) {
 		return notFound('Missing ID');
@@ -169,10 +212,10 @@ router.get('/delete', authMiddleware, async (request, env) => {
 });
 
 router.get('/upload/:id', getFile);
-router.get('/file/*', getFile);
-router.head('/file/*', getFile);
+router.get('/*', getFile);
+router.head('/*', getFile);
 
-router.get('/files/list', authMiddleware, async (request, env) => {
+router.get('/list', authMiddleware, async (request, env) => {
 	const items = await env.R2_BUCKET.list({ limit: 1000 });
 	return new Response(JSON.stringify(items, null, 2), {
 		headers: {
@@ -181,15 +224,6 @@ router.get('/files/list', authMiddleware, async (request, env) => {
 	});
 });
 
-// 404 everything else
-router.all('*', (): Response => new Response(JSON.stringify({
-	success: false,
-	error: 'Not Found',
-}), {
-	status: 404,
-	headers: {
-		'content-type': 'application/json',
-	},
-}));
+router.all('*', () => notFound('Not Found'));
 
 export { router };
