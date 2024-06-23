@@ -1,3 +1,4 @@
+
 import { IRequestStrict, Router } from 'itty-router';
 import render2 from 'render2';
 
@@ -378,25 +379,7 @@ const getFile = async (request: IRequestStrict, env: Env, ctx: ExecutionContext)
 		return notFound('Missing ID');
 	}
 
-	// Fetch the file metadata from R2 bucket
-	const fileObject = await env.R2_BUCKET.head(id);
-	if (!fileObject) {
-		return notFound('File not found');
-	}
-
-	const contentType = fileObject.httpMetadata?.contentType || 'application/octet-stream';
-	const fileUrl = `https://boymoder.org/${id}`;
-
-	let fileHtml = '';
-	if (contentType.startsWith('image/')) {
-		fileHtml = `<img src="${fileUrl}" alt="File" />`;
-	} else if (contentType.startsWith('video/')) {
-		fileHtml = `<video controls><source src="${fileUrl}" type="${contentType}">Your browser does not support the video tag.</video>`;
-	} else if (contentType === 'application/pdf') {
-		fileHtml = `<embed src="${fileUrl}" type="application/pdf" width="100%" height="600px" />`;
-	} else {
-		fileHtml = `<a href="${fileUrl}" download>Download File</a>`;
-	}
+	const imageUrl = `https://boymoder.org/thumbnail/${id}`;
 
 	return new Response(`
         <!DOCTYPE html>
@@ -405,15 +388,17 @@ const getFile = async (request: IRequestStrict, env: Env, ctx: ExecutionContext)
             <meta charset="UTF-8" />
             <meta name="viewport" content="width=device-width, initial-scale=1.0" />
             <meta property="og:title" content="boymoder.org" />
-            <meta property="og:image" content="${fileUrl}" />
-            <meta name="twitter:card" content="summary_large_image">
-            <meta name="og:video" content="${fileUrl}">
-            <meta property="og:description" content="boymoder.org" />
-            <meta property="og:url" content="https://boymoder.org/${id}" />
+            <meta property="og:image" content="${imageUrl}" />
+			<meta name="twitter:card" content="summary_large_image">
+			
+			<meta property="og:description" content="boymoder.org" />
+			<meta property="og:url" content="https://boymoder.org/${id}" />
+			<meta property="og:type" content="website" />
+			
             <title>boymoder.org</title>
         </head>
         <body>
-            ${fileHtml}
+            <img src="${imageUrl}" />
         </body>
         </html>
     `, {
@@ -422,7 +407,6 @@ const getFile = async (request: IRequestStrict, env: Env, ctx: ExecutionContext)
 		},
 	});
 };
-
 
 router.get('/thumbnail/:id', getThumbnail);
 router.get('/upload/:id', getFile);
