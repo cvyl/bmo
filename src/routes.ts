@@ -347,11 +347,9 @@ const getThumbnail = async (request: IRequestStrict, env: Env, ctx: ExecutionCon
 		return notFound('Missing ID');
 	}
 
+	// Fetch the image using the native fetch API
 	const imageReq = new Request(`https://r2host/${id}`, request);
-	const imageResponse = await render2.fetch(imageReq, {
-		...env,
-		CACHE_CONTROL: 'public, max-age=604800',
-	}, ctx);
+	const imageResponse = await fetch(imageReq);
 
 	if (!imageResponse.ok) {
 		return new Response('Error fetching image', { status: imageResponse.status });
@@ -361,10 +359,11 @@ const getThumbnail = async (request: IRequestStrict, env: Env, ctx: ExecutionCon
 	return new Response(arrayBuffer, {
 		headers: {
 			'content-type': imageResponse.headers.get('content-type'),
-			'cache-control': 'public, max-age=604800',
+			'cache-control': 'public, max-age=604800', // Manually set the cache control header
 		},
 	});
 };
+
 
 // Handle file retrieval for main page
 const getFile = async (request: IRequestStrict, env: Env, ctx: ExecutionContext) => {
