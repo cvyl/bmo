@@ -28,6 +28,16 @@ router.get('/', () => new Response(`
     <span>Temporary 24 hour file hosting</span>
     <br />
     <span>No illegal content, must abide to Dutch law</span>
+	<br />
+	<span>Uploads are not encrypted, do not upload sensitive data</span>
+	<br />
+	<span>Maximum file size is 100MB</span>
+	<br />
+	<span>Files in this bucket are removed every 24 hours</span>
+	<br />
+	<span>Uploads are logged</span>
+	<br />
+	<br />
     <input type="file" id="fileInput" />
     <button id="uploadButton">Upload</button>
     <br />
