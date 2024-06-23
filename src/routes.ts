@@ -28,10 +28,8 @@ router.get('/', () => new Response(`
     <span>Temporary 24 hour file hosting</span>
     <br />
     <span>No illegal content, must abide to Dutch law</span>
-    <form id="uploadForm" enctype="multipart/form-data">
-        <input type="file" name="file" />
-        <button type="submit">Upload</button>
-    </form>
+    <input type="file" id="fileInput" />
+    <button id="uploadButton">Upload</button>
     <br />
     <input type="text" id="fileUrl" readonly style="width: 100%; display: none;" />
     <script>
@@ -47,29 +45,42 @@ router.get('/', () => new Response(`
             }
         }
 
-        document.getElementById("uploadForm").addEventListener("submit", function(event) {
-            event.preventDefault();
-            var formData = new FormData(this);
-            fetch("/anonUpload", {
-                method: "POST",
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log(data);
-                if (data.success) {
-                    var fileUrlInput = document.getElementById("fileUrl");
-                    fileUrlInput.value = data.image;
-                    fileUrlInput.style.display = "block";
-                }
-            })
-            .catch(error => {
-                console.error(error);
-            });
+        document.getElementById("uploadButton").addEventListener("click", function() {
+            var fileInput = document.getElementById("fileInput");
+            var file = fileInput.files[0];
+
+            if (file) {
+                var formData = new FormData();
+                formData.append("file", file);
+
+                fetch("/anonUpload", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": file.type,
+                        "Content-Length": file.size
+                    },
+                    body: file
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    if (data.success) {
+                        var fileUrlInput = document.getElementById("fileUrl");
+                        fileUrlInput.value = data.image;
+                        fileUrlInput.style.display = "block";
+                    }
+                })
+                .catch(error => {
+                    console.error(error);
+                });
+            } else {
+                alert("Please select a file to upload.");
+            }
         });
     </script>
 </body>
 </html>
+
 
 `, {
 	headers: {
@@ -146,7 +157,7 @@ router.post('/anonUpload', async (request, env) => {
 		await env.R2_BUCKET.put(filename, request.body, {
 			httpMetadata: {
 				contentType: contentType,
-				cacheControl: 'public, max-age=86400',
+				cacheControl: 'public, max-age=604800',
 			},
 		});
 	} catch (error) {
@@ -163,6 +174,23 @@ router.post('/anonUpload', async (request, env) => {
 				'content-type': 'application/json',
 			},
 		});
+	}
+
+	const ip = request.headers.get('cf-connecting-ip');
+	const webhookUrl = env.DISCORD_WEBHOOK_URL;
+	if (webhookUrl) {
+		console.log(`Uploaded file: ${filename} from IP: ${ip}`);
+		const webhookReq = {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({
+				content: `Uploaded file: ${filename} from IP: ${ip}`,
+			}),
+		};
+		await fetch(webhookUrl, webhookReq);
+		console.log('Sent to Discord');
 	}
 
 	// return the image url
