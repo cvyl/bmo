@@ -426,7 +426,7 @@ const getFile = async (request: IRequestStrict, env: Env, ctx: ExecutionContext)
 			<meta name="theme-color" content="#7289DA"> 
 			
 			<meta property="og:type" content="website" />
-			<link type="application/json+oembed" href="https://boymoder.org/thumbnail/${id}/oE" /> 
+			<link type="application/json+oembed" href="https://boymoder.org/thumbnail/${id}/json" /> 
 			
             <title>boymoder.org</title>
         </head>
