@@ -334,13 +334,13 @@ router.post('/upload', authMiddleware, async (request, env) => {
 	});
 });
 
-// handle file retrieval
-const getFile = async (request: IRequestStrict, env: Env, ctx: ExecutionContext) => {
+// Handle file retrieval for thumbnail
+const getThumbnail = async (request: IRequestStrict, env: Env, ctx: ExecutionContext) => {
 	if (env.ONLY_ALLOW_ACCESS_TO_PUBLIC_BUCKET) {
 		return notFound('Not Found');
 	}
 	const url = new URL(request.url);
-	const id = url.pathname.slice(1);
+	const id = url.pathname.split('/thumbnail/')[1];
 	console.log(id);
 
 	if (!id) {
@@ -358,11 +358,28 @@ const getFile = async (request: IRequestStrict, env: Env, ctx: ExecutionContext)
 	}
 
 	const arrayBuffer = await imageResponse.arrayBuffer();
-	const uint8Array = new Uint8Array(arrayBuffer);
-	const binaryString = uint8Array.reduce((data, byte) => data + String.fromCharCode(byte), '');
-	const base64String = btoa(binaryString);
-	const contentType = imageResponse.headers.get('content-type');
-	const dataUrl = `data:${contentType};base64,${base64String}`;
+	return new Response(arrayBuffer, {
+		headers: {
+			'content-type': imageResponse.headers.get('content-type'),
+			'cache-control': 'public, max-age=604800',
+		},
+	});
+};
+
+// Handle file retrieval for main page
+const getFile = async (request: IRequestStrict, env: Env, ctx: ExecutionContext) => {
+	if (env.ONLY_ALLOW_ACCESS_TO_PUBLIC_BUCKET) {
+		return notFound('Not Found');
+	}
+	const url = new URL(request.url);
+	const id = url.pathname.slice(1);
+	console.log(id);
+
+	if (!id) {
+		return notFound('Missing ID');
+	}
+
+	const imageUrl = `https://boymoder.org/thumbnail/${id}`;
 
 	return new Response(`
         <!DOCTYPE html>
@@ -371,11 +388,11 @@ const getFile = async (request: IRequestStrict, env: Env, ctx: ExecutionContext)
             <meta charset="UTF-8" />
             <meta name="viewport" content="width=device-width, initial-scale=1.0" />
             <meta property="og:title" content="boymoder.org" />
-            <meta property="og:image" content="${dataUrl}" />
+            <meta property="og:image" content="${imageUrl}" />
             <title>boymoder.org</title>
         </head>
         <body>
-            <img src="${dataUrl}" />
+            <img src="${imageUrl}" />
         </body>
         </html>
     `, {
@@ -384,6 +401,14 @@ const getFile = async (request: IRequestStrict, env: Env, ctx: ExecutionContext)
 		},
 	});
 };
+
+router.get('/thumbnail/:id', getThumbnail);
+router.get('/upload/:id', getFile);
+router.get('/*', getFile);
+router.head('/*', getFile);
+router.get('/temp/*', getFile);
+router.head('/temp/*', getFile);
+
 
 
 
@@ -431,6 +456,7 @@ router.get('/delete', authMiddleware, async (request, env) => {
 	}
 });
 
+router.get('/thumbnail/:id', getThumbnail);
 router.get('/upload/:id', getFile);
 router.get('/*', getFile);
 router.head('/*', getFile);
