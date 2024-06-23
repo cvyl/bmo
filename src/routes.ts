@@ -335,6 +335,7 @@ router.post('/upload', authMiddleware, async (request, env) => {
 });
 
 // handle file retrieval
+// handle file retrieval
 const getFile = async (request: IRequestStrict, env: Env, ctx: ExecutionContext) => {
 	if (env.ONLY_ALLOW_ACCESS_TO_PUBLIC_BUCKET) {
 		return notFound('Not Found');
@@ -347,10 +348,10 @@ const getFile = async (request: IRequestStrict, env: Env, ctx: ExecutionContext)
 		return notFound('Missing ID');
 	}
 
-	const imageUrl = `https://r2host/${id}`;
-	console.log(imageUrl);
+	const imageReq = new Request(`https://r2host/${id}`, request);
+	const response = await fetch(imageReq);
+	const imageUrl = response.url;
 
-	//return render2 fetch but in opengraph metadata so the file is in a nice embed on discord and other platforms by returning html with opengraph metadata
 	return new Response(`
 <!DOCTYPE html>
 <html lang="en">
@@ -371,6 +372,7 @@ const getFile = async (request: IRequestStrict, env: Env, ctx: ExecutionContext)
 		},
 	});
 };
+
 
 
 /*return render2.fetch(imageReq, {
