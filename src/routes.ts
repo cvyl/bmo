@@ -394,6 +394,7 @@ const getFile = async (request: IRequestStrict, env: Env, ctx: ExecutionContext)
 			<meta property="og:description" content="boymoder.org" />
 			<meta property="og:url" content="https://boymoder.org/${id}" />
 			<meta property="og:type" content="website" />
+			<link type="application/json+oembed" href="https://boymoder.org/thumbnail/1719166774" /> 
 			
             <title>boymoder.org</title>
         </head>
