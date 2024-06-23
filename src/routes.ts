@@ -389,10 +389,10 @@ const getFile = async (request: IRequestStrict, env: Env, ctx: ExecutionContext)
             <meta property="og:title" content="boymoder.org" />
             <meta property="og:image" content="${imageUrl}" />
 			<meta name="twitter:card" content="summary_large_image">
+			<meta name="og:video" content="${imageUrl}">
 			
 			<meta property="og:description" content="boymoder.org" />
 			<meta property="og:url" content="https://boymoder.org/${id}" />
-			<meta property="og:type" content="website" />
 			
             <title>boymoder.org</title>
         </head>
