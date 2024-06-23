@@ -347,7 +347,9 @@ const getFile = async (request: IRequestStrict, env: Env, ctx: ExecutionContext)
 		return notFound('Missing ID');
 	}
 
-	const imageReq = new Request(`https://r2host/${id}`, request);
+	const imageUrl = `https://r2host/${id}`;
+	console.log(imageUrl);
+
 	//return render2 fetch but in opengraph metadata so the file is in a nice embed on discord and other platforms by returning html with opengraph metadata
 	return new Response(`
 <!DOCTYPE html>
@@ -356,11 +358,11 @@ const getFile = async (request: IRequestStrict, env: Env, ctx: ExecutionContext)
 	<meta charset="UTF-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<meta property="og:title" content="boymoder.org" />
-	<meta property="og:image" content="${imageReq}" />
+	<meta property="og:image" content="${imageUrl}" />
 	<title>boymoder.org</title>
 </head>
 <body>
-	<img src="${imageReq}" />
+	<img src="${imageUrl}" />
 </body>
 </html>
 `, {
@@ -369,6 +371,7 @@ const getFile = async (request: IRequestStrict, env: Env, ctx: ExecutionContext)
 		},
 	});
 };
+
 
 /*return render2.fetch(imageReq, {
 		...env,
