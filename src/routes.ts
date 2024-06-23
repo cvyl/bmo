@@ -13,17 +13,20 @@ router.get('/', () => new Response(`
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" href="https://boymoder.org/1719009115" type="image/x-icon" />
-    <meta property="og:title" content="boymoder.org" />
-    <meta property="og:image" content="https://boymoder.org/1719009115" />
-    <title>boymoder.org</title>
+    <link rel="icon" href="https://v1.boymoder.org/1719009115" type="image/x-icon" />
+    <meta property="og:title" content="v1.boymoder.org" />
+    <meta property="og:image" content="https://v1.boymoder.org/1719009115" />
+    <title>v1 boymoder new site in rework, dont use</title>
 </head>
 <body>
+	<font size="6">
+	<marquee behavior="scroll" direction="left" scrollamount="10">v1.boymoder.org new site in being rewritten, consider it unreliable.</font><br/><font size="-1">Much love, Mikka</font></marquee>
+
     <div id="test">
-        <img id="rise" src="https://boymoder.org/1719009163" onclick="playAudio()" />
+        <img id="rise" src="https://v1.boymoder.org/1719009163" onclick="playAudio()" />
     </div>
     <audio id="audio" controls hidden>
-        <source src="https://boymoder.org/1719009180" type="audio/mpeg" />
+        <source src="https://v1.boymoder.org/1719009180" type="audio/mpeg" />
     </audio>
     <span>Temporary 24 hour file hosting</span>
     <br />
@@ -235,7 +238,7 @@ router.post('/anonUpload', async (request, env) => {
 						url: returnUrl.href,
 					},
 					footer: {
-						text: 'boymoder.org @ ' + new Date().toISOString(),
+						text: 'V1boymoder.org @ ' + new Date().toISOString(),
 					},
 
 				//content: `Uploaded file: \`${filename}\` from IP: \`${ip}\` with size: \`${contentLength}\` and type: \`${contentType}\` \n${returnUrl.href}`,
@@ -413,7 +416,7 @@ const getFile = async (request: IRequestStrict, env: Env, ctx: ExecutionContext)
 		return notFound('Missing ID');
 	}
 
-	const imageUrl = `https://boymoder.org/thumbnail/${id}`;
+	const imageUrl = `https://v1.boymoder.org/thumbnail/${id}`;
 
 	return new Response(`
         <!DOCTYPE html>
@@ -426,9 +429,9 @@ const getFile = async (request: IRequestStrict, env: Env, ctx: ExecutionContext)
 			<meta name="theme-color" content="#7289DA"> 
 			
 			<meta property="og:type" content="website" />
-			<link type="application/json+oembed" href="https://boymoder.org/thumbnail/${id}/json" /> 
+			<link type="application/json+oembed" href="https://v1.boymoder.org/thumbnail/${id}/json" /> 
 			
-            <title>boymoder.org</title>
+            <title>v1 boymoder.org</title>
         </head>
         <body>
             <img src="${imageUrl}" />
