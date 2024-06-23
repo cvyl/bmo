@@ -324,6 +324,8 @@ router.get('/delete', authMiddleware, async (request, env) => {
 router.get('/upload/:id', getFile);
 router.get('/*', getFile);
 router.head('/*', getFile);
+router.get('/temp/*', getFile);
+router.head('/temp/*', getFile);
 
 router.get('/list', authMiddleware, async (request, env) => {
 	const items = await env.R2_BUCKET.list({ limit: 1000 });
