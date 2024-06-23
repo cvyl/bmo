@@ -335,7 +335,6 @@ router.post('/upload', authMiddleware, async (request, env) => {
 });
 
 // handle file retrieval
-// handle file retrieval
 const getFile = async (request: IRequestStrict, env: Env, ctx: ExecutionContext) => {
 	if (env.ONLY_ALLOW_ACCESS_TO_PUBLIC_BUCKET) {
 		return notFound('Not Found');
@@ -349,24 +348,37 @@ const getFile = async (request: IRequestStrict, env: Env, ctx: ExecutionContext)
 	}
 
 	const imageReq = new Request(`https://r2host/${id}`, request);
-	const response = await fetch(imageReq);
-	const imageUrl = response.url;
+	const imageResponse = await render2.fetch(imageReq, {
+		...env,
+		CACHE_CONTROL: 'public, max-age=604800',
+	}, ctx);
+
+	if (!imageResponse.ok) {
+		return new Response('Error fetching image', { status: imageResponse.status });
+	}
+
+	const arrayBuffer = await imageResponse.arrayBuffer();
+	const uint8Array = new Uint8Array(arrayBuffer);
+	const binaryString = uint8Array.reduce((data, byte) => data + String.fromCharCode(byte), '');
+	const base64String = btoa(binaryString);
+	const contentType = imageResponse.headers.get('content-type');
+	const dataUrl = `data:${contentType};base64,${base64String}`;
 
 	return new Response(`
-<!DOCTYPE html>
-<html lang="en">
-<head>
-	<meta charset="UTF-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-	<meta property="og:title" content="boymoder.org" />
-	<meta property="og:image" content="${imageUrl}" />
-	<title>boymoder.org</title>
-</head>
-<body>
-	<img src="${imageUrl}" />
-</body>
-</html>
-`, {
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+            <meta property="og:title" content="boymoder.org" />
+            <meta property="og:image" content="${dataUrl}" />
+            <title>boymoder.org</title>
+        </head>
+        <body>
+            <img src="${dataUrl}" />
+        </body>
+        </html>
+    `, {
 		headers: {
 			'content-type': 'text/html',
 		},
