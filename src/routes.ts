@@ -366,6 +366,40 @@ const getThumbnail = async (request: IRequestStrict, env: Env, ctx: ExecutionCon
 	});
 };
 
+const getOEmbed = async (request, env) => {
+	const url = new URL(request.url);
+	const id = url.pathname.split('/thumbnail/')[1];
+	console.log(id);
+	//grab the id numbers before the /json
+	const timestamp = url.pathname.split('/thumbnail/')[1].split('/json')[0];
+	console.log(timestamp);
+	//convert the timestamp to a date
+	const date = new Date(Number.parseInt(timestamp) * 1000);
+	//conver timestamp to "YYYY-MM-DD @ HH:MM" and not "YYYY-MM-DDTHH:MM:SSZ" or anything else
+	const datestring = date.toISOString().replace(/T/, ' @ ').replace(/\..+/, '');
+	console.log(datestring);
+	if (!id) {
+		return notFound('Missing ID');
+	}
+	console.log('oEmbed ID: ' + id);
+	const oEmbedResponse = {
+		title: datestring,
+
+		author_name: 'Author Name Field' + date.toISOString(),
+		//author_url: 'https://discordapp.com',
+
+		provider_name: 'Provider Name Field',
+		//provider_url: 'https://discordapp.com',
+	};
+
+	return new Response(JSON.stringify(oEmbedResponse), {
+		headers: {
+			'content-type': 'application/json',
+		},
+	});
+};
+
+
 // Handle file retrieval for main page
 const getFile = async (request: IRequestStrict, env: Env, ctx: ExecutionContext) => {
 	if (env.ONLY_ALLOW_ACCESS_TO_PUBLIC_BUCKET) {
@@ -389,9 +423,10 @@ const getFile = async (request: IRequestStrict, env: Env, ctx: ExecutionContext)
             <meta name="viewport" content="width=device-width, initial-scale=1.0" />
             <meta property="og:image" content="${imageUrl}" />
 			<meta name="twitter:card" content="summary_large_image">
+			<meta name="theme-color" content="#7289DA"> 
 			
 			<meta property="og:type" content="website" />
-			<link type="application/json+oembed" href="https://boymoder.org/thumbnail/1719166774" /> 
+			<link type="application/json+oembed" href="https://boymoder.org/thumbnail/${id}/oE" /> 
 			
             <title>boymoder.org</title>
         </head>
@@ -406,12 +441,6 @@ const getFile = async (request: IRequestStrict, env: Env, ctx: ExecutionContext)
 	});
 };
 
-router.get('/thumbnail/:id', getThumbnail);
-router.get('/upload/:id', getFile);
-router.get('/*', getFile);
-router.head('/*', getFile);
-router.get('/temp/*', getFile);
-router.head('/temp/*', getFile);
 
 
 
@@ -461,11 +490,13 @@ router.get('/delete', authMiddleware, async (request, env) => {
 });
 
 router.get('/thumbnail/:id', getThumbnail);
+router.get('/thumbnail/:id/json', getOEmbed);
 router.get('/upload/:id', getFile);
 router.get('/*', getFile);
 router.head('/*', getFile);
 router.get('/temp/*', getFile);
 router.head('/temp/*', getFile);
+
 
 router.get('/list', authMiddleware, async (request, env) => {
 	const items = await env.R2_BUCKET.list({ limit: 1000 });
