@@ -1,4 +1,3 @@
-
 import { IRequestStrict, Router } from 'itty-router';
 import render2 from 'render2';
 
