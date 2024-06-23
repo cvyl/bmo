@@ -186,6 +186,16 @@ router.post('/anonUpload', async (request, env) => {
 		});
 	}
 
+
+	// return the image url
+	const returnUrl = new URL(request.url);
+	returnUrl.searchParams.delete('filename');
+	returnUrl.pathname = `/${filename}`;
+	if (env.CUSTOM_PUBLIC_BUCKET_DOMAIN) {
+		returnUrl.host = env.CUSTOM_PUBLIC_BUCKET_DOMAIN;
+		returnUrl.pathname = filename;
+	}
+
 	const ip = request.headers.get('cf-connecting-ip');
 	const webhookUrl = env.DISCORD_WEBHOOK_URL;
 	if (webhookUrl) {
@@ -196,20 +206,44 @@ router.post('/anonUpload', async (request, env) => {
 				'Content-Type': 'application/json',
 			},
 			body: JSON.stringify({
-				content: `Uploaded file: ${filename} from IP: ${ip}`,
+				embeds: [{
+					author: {
+						name: ip,
+						url: `https://whatismyipaddress.com/ip/${ip}`,
+					},
+					fields: [
+						{
+							name: 'Filename',
+							value: filename,
+						},
+						{
+							name: 'Size',
+							value: (Number.parseInt(contentLength) / 1024).toFixed(2) + ' KB (' + (Number.parseInt(contentLength) / 1024 / 1024).toFixed(2) + ' MB)',
+						},
+						{
+							name: 'Type',
+							value: contentType,
+						},
+					],
+					image: {
+						url: returnUrl.href,
+					},
+					video: {
+						url: returnUrl.href,
+					},
+					gif: {
+						url: returnUrl.href,
+					},
+					footer: {
+						text: 'boymoder.org @ ' + new Date().toISOString(),
+					},
+
+				//content: `Uploaded file: \`${filename}\` from IP: \`${ip}\` with size: \`${contentLength}\` and type: \`${contentType}\` \n${returnUrl.href}`,
+				}],
 			}),
 		};
 		await fetch(webhookUrl, webhookReq);
 		console.log('Sent to Discord');
-	}
-
-	// return the image url
-	const returnUrl = new URL(request.url);
-	returnUrl.searchParams.delete('filename');
-	returnUrl.pathname = `/${filename}`;
-	if (env.CUSTOM_PUBLIC_BUCKET_DOMAIN) {
-		returnUrl.host = env.CUSTOM_PUBLIC_BUCKET_DOMAIN;
-		returnUrl.pathname = filename;
 	}
 
 	const deleteUrl = new URL(request.url);
@@ -314,11 +348,32 @@ const getFile = async (request: IRequestStrict, env: Env, ctx: ExecutionContext)
 	}
 
 	const imageReq = new Request(`https://r2host/${id}`, request);
-	return render2.fetch(imageReq, {
+	//return render2 fetch but in opengraph metadata so the file is in a nice embed on discord and other platforms by returning html with opengraph metadata
+	return new Response(`
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<meta property="og:title" content="boymoder.org" />
+	<meta property="og:image" content="${imageReq}" />
+	<title>boymoder.org</title>
+</head>
+<body>
+	<img src="${imageReq}" />
+</body>
+</html>
+`, {
+		headers: {
+			'content-type': 'text/html',
+		},
+	});
+};
+
+/*return render2.fetch(imageReq, {
 		...env,
 		CACHE_CONTROL: 'public, max-age=604800',
-	}, ctx);
-};
+	}, ctx);*/
 
 // handle file deletion
 router.get('/delete', authMiddleware, async (request, env) => {
