@@ -3,7 +3,6 @@ import render2 from 'render2';
 
 import { Env } from './types';
 
-
 type CF = [env: Env, ctx: ExecutionContext];
 const router = Router<IRequestStrict, CF>();
 
@@ -11,40 +10,65 @@ const router = Router<IRequestStrict, CF>();
 router.get('/', () => new Response(`
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<link rel="icon" href="https://boymoder.org/1719009115" type="image/x-icon" />
-		<meta property="og:title" content="boymoder.org" />
-		<meta property="og:image" content="https://boymoder.org/1719009115" />
-		<title>boymoder.org</title>
-	</head>
-	<body>
-		<div id="test">
-			<img
-				id="rise"
-				src="https://boymoder.org/1719009163"
-				onclick="playAudio()"
-			/>
-		</div>
-		<audio id="audio" controls hidden>
-			<source src="https://boymoder.org/1719009180" type="audio/mpeg" />
-		</audio>
-	<script>
-		var audio = document.getElementById("audio");
-		audio.volume = 0.5;
-		
-		function playAudio() {
-			if (audio.paused) {
-				audio.play();
-			} else {
-				audio.pause();
-				audio.currentTime = 0;
-			}
-		}
-	</script>
-		
-	</body>
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="https://boymoder.org/1719009115" type="image/x-icon" />
+    <meta property="og:title" content="boymoder.org" />
+    <meta property="og:image" content="https://boymoder.org/1719009115" />
+    <title>boymoder.org</title>
+</head>
+<body>
+    <div id="test">
+        <img id="rise" src="https://boymoder.org/1719009163" onclick="playAudio()" />
+    </div>
+    <audio id="audio" controls hidden>
+        <source src="https://boymoder.org/1719009180" type="audio/mpeg" />
+    </audio>
+    <span>Temporary 24 hour file hosting</span>
+    <br />
+    <span>No illegal content, must abide to Dutch law</span>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <input type="file" name="file" />
+        <button type="submit">Upload</button>
+    </form>
+    <br />
+    <input type="text" id="fileUrl" readonly style="width: 100%; display: none;" />
+    <script>
+        var audio = document.getElementById("audio");
+        audio.volume = 0.5;
+
+        function playAudio() {
+            if (audio.paused) {
+                audio.play();
+            } else {
+                audio.pause();
+                audio.currentTime = 0;
+            }
+        }
+
+        document.getElementById("uploadForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            var formData = new FormData(this);
+            fetch("/anonUpload", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                if (data.success) {
+                    var fileUrlInput = document.getElementById("fileUrl");
+                    fileUrlInput.value = data.image;
+                    fileUrlInput.style.display = "block";
+                }
+            })
+            .catch(error => {
+                console.error(error);
+            });
+        });
+    </script>
+</body>
 </html>
 
 `, {
@@ -79,7 +103,93 @@ const notFound = error => new Response(JSON.stringify({
 	},
 });
 
-// handle upload
+// handle anonymous upload
+router.post('/anonUpload', async (request, env) => {
+	const url = new URL(request.url);
+	let fileslug = url.searchParams.get('filename');
+	if (!fileslug) {
+		fileslug = Math.floor(Date.now() / 1000).toString();
+	}
+	const filename = `temp/${fileslug}`;
+
+	// ensure content-length and content-type headers are present
+	const contentType = request.headers.get('content-type');
+	const contentLength = request.headers.get('content-length');
+	if (!contentLength || !contentType) {
+		return new Response(JSON.stringify({
+			success: false,
+			message: 'content-length and content-type are required',
+		}), {
+			status: 400,
+			headers: {
+				'content-type': 'application/json',
+			},
+		});
+	}
+
+	// check file size
+	const maxSize = 100 * 1024 * 1024; // 100MB
+	if (Number.parseInt(contentLength) > maxSize) {
+		return new Response(JSON.stringify({
+			success: false,
+			message: 'File size exceeds the maximum limit',
+		}), {
+			status: 400,
+			headers: {
+				'content-type': 'application/json',
+			},
+		});
+	}
+
+	// write to R2
+	try {
+		await env.R2_BUCKET.put(filename, request.body, {
+			httpMetadata: {
+				contentType: contentType,
+				cacheControl: 'public, max-age=86400',
+			},
+		});
+	} catch (error) {
+		return new Response(JSON.stringify({
+			success: false,
+			message: 'Error occurred writing to R2',
+			error: {
+				name: error.name,
+				message: error.message,
+			},
+		}), {
+			status: 500,
+			headers: {
+				'content-type': 'application/json',
+			},
+		});
+	}
+
+	// return the image url
+	const returnUrl = new URL(request.url);
+	returnUrl.searchParams.delete('filename');
+	returnUrl.pathname = `/${filename}`;
+	if (env.CUSTOM_PUBLIC_BUCKET_DOMAIN) {
+		returnUrl.host = env.CUSTOM_PUBLIC_BUCKET_DOMAIN;
+		returnUrl.pathname = filename;
+	}
+
+	const deleteUrl = new URL(request.url);
+	deleteUrl.pathname = '/delete';
+	deleteUrl.searchParams.set('filename', filename);
+
+	return new Response(JSON.stringify({
+		success: true,
+		image: returnUrl.href,
+		deleteUrl: deleteUrl.href,
+	}), {
+		headers: {
+			'content-type': 'application/json',
+		},
+	});
+});
+
+// handle upload with authentication
 router.post('/upload', authMiddleware, async (request, env) => {
 	const url = new URL(request.url);
 	let fileslug = url.searchParams.get('filename');
@@ -114,7 +224,7 @@ router.post('/upload', authMiddleware, async (request, env) => {
 	} catch (error) {
 		return new Response(JSON.stringify({
 			success: false,
-			message: 'Error occured writing to R2',
+			message: 'Error occurred writing to R2',
 			error: {
 				name: error.name,
 				message: error.message,
